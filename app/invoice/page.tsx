@@ -1,9 +1,9 @@
-// File: app/page.tsx
-import Link from "next/link"
+//app/invoice/page.tsx
 import { Metadata } from "next"
+import InvoicePageContent from "@/components/invoice/InvoicePageContent"
 
 export const metadata: Metadata = {
-  title: "Free Invoice Generator for Freelancers",
+  title: "Free Invoice Generator",
   description:
     "Create professional freelance invoices instantly. 100% free and easy to use. No signup or license required.",
   keywords: [
@@ -30,21 +30,6 @@ export const metadata: Metadata = {
   },
 }
 
-export default function HomePage() {
-  return (
-    <main className="flex-grow flex items-center justify-center px-4">
-      <div className="max-w-2xl text-center">
-        <h2 className="text-4xl font-bold mb-4">
-          Simple Invoicing for Freelancers
-        </h2>
-        <p className="mb-6 text-lg text-gray-600">
-          Generate professional invoices in seconds — completely free. No
-          account or license key needed.
-        </p>
-        <Link href="/invoice" className="button text-lg px-6 py-3">
-          Create Invoice
-        </Link>
-      </div>
-    </main>
-  )
+export default function InvoicePage() {
+  return <InvoicePageContent></InvoicePageContent>
 }

@@ -1,0 +1,80 @@
+import { create } from "zustand"
+import { persist } from "zustand/middleware"
+
+type InvoiceItem = {
+  description: string
+  quantity: number
+  price: number
+}
+
+type ContactInfo = {
+  name: string
+  email: string
+  address: string
+  phone?: string
+}
+
+type InvoiceMeta = {
+  number?: string
+  date?: string
+  dueDate?: string
+  paymentDetails?: string
+}
+
+type InvoiceState = {
+  freelancer: ContactInfo
+  client: ContactInfo
+  items: InvoiceItem[]
+  tax: number
+  invoiceMeta: InvoiceMeta
+  setFreelancer: (info: Partial<ContactInfo>) => void
+  setClient: (info: Partial<ContactInfo>) => void
+  setItems: (items: InvoiceItem[]) => void
+  updateItem: (index: number, field: keyof InvoiceItem, value: string) => void
+  addItem: () => void
+  setTax: (tax: number) => void
+  setInvoiceMeta: (meta: Partial<InvoiceMeta>) => void
+}
+
+export const useInvoiceStore = create<InvoiceState>()(
+  persist(
+    (set) => ({
+      freelancer: { name: "", email: "", address: "", phone: "" },
+      client: { name: "", email: "", address: "", phone: "" },
+      items: [{ description: "", quantity: 1, price: 0 }],
+      tax: 0,
+      invoiceMeta: { number: "", date: "", dueDate: "", paymentDetails: "" },
+      setFreelancer: (info) =>
+        set((state) => ({
+          freelancer: { ...state.freelancer, ...info },
+        })),
+      setClient: (info) =>
+        set((state) => ({
+          client: { ...state.client, ...info },
+        })),
+      setItems: (items) => set(() => ({ items })),
+      updateItem: (index, field, value) =>
+        set((state) => {
+          const items = [...state.items]
+          if (field === "description") {
+            items[index][field] = value
+          } else {
+            items[index][field] = parseFloat(value) as never
+          }
+          return { items }
+        }),
+      addItem: () =>
+        set((state) => ({
+          items: [...state.items, { description: "", quantity: 1, price: 0 }],
+        })),
+      setTax: (tax) => set(() => ({ tax })),
+      setInvoiceMeta: (meta) =>
+        set((state) => ({
+          invoiceMeta: { ...state.invoiceMeta, ...meta },
+        })),
+    }),
+    {
+      name: "invoice-storage",
+    }
+  )
+)
