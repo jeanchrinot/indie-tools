@@ -152,11 +152,11 @@ export default function InvoicePreview() {
           <p className="text-xs text-gray-400 italic text-center">
             Created with{" "}
             <a
-              href="https://freeinvoice.com"
+              href={process.env.NEXT_PUBLIC_APP_URL}
               className="underline"
               target="_blank"
             >
-              freeinvoice.com
+              {process.env.NEXT_PUBLIC_APP_URL}
             </a>
           </p>
         </div>

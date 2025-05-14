@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Free Invoice Generator for Freelancers",
+  title: `Free Invoice Generator for Freelancers | ${process.env.NEXT_PUBLIC_APP_NAME}`,
   description:
     "Create professional freelance invoices instantly. 100% free and easy to use. No signup or license required.",
   keywords: [
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     "invoice PDF",
     "invoice template",
     "invoicing tool",
+    "indie tools",
   ],
   openGraph: {
     title: "Free Invoice Generator for Freelancers",
