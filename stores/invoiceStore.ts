@@ -26,6 +26,7 @@ type InvoiceState = {
   client: ContactInfo
   items: InvoiceItem[]
   tax: number
+  currency: string
   invoiceMeta: InvoiceMeta
   setFreelancer: (info: Partial<ContactInfo>) => void
   setClient: (info: Partial<ContactInfo>) => void
@@ -33,6 +34,7 @@ type InvoiceState = {
   updateItem: (index: number, field: keyof InvoiceItem, value: string) => void
   addItem: () => void
   setTax: (tax: number) => void
+  setCurrency: (currency: string) => void
   setInvoiceMeta: (meta: Partial<InvoiceMeta>) => void
 }
 
@@ -43,7 +45,13 @@ export const useInvoiceStore = create<InvoiceState>()(
       client: { name: "", email: "", address: "", phone: "" },
       items: [{ description: "", quantity: 1, price: 0 }],
       tax: 0,
-      invoiceMeta: { number: "", date: "", dueDate: "", paymentDetails: "" },
+      currency: "€", // default
+      invoiceMeta: {
+        number: "INV-001",
+        date: "",
+        dueDate: "",
+        paymentDetails: "",
+      },
       setFreelancer: (info) =>
         set((state) => ({
           freelancer: { ...state.freelancer, ...info },
@@ -68,13 +76,14 @@ export const useInvoiceStore = create<InvoiceState>()(
           items: [...state.items, { description: "", quantity: 1, price: 0 }],
         })),
       setTax: (tax) => set(() => ({ tax })),
+      setCurrency: (currency: string) => set({ currency }),
       setInvoiceMeta: (meta) =>
         set((state) => ({
           invoiceMeta: { ...state.invoiceMeta, ...meta },
         })),
     }),
     {
-      name: "invoice-storage",
+      name: "indie-tools-invoice-storage",
     }
   )
 )

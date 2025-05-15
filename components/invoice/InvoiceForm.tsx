@@ -8,6 +8,7 @@ const InvoiceForm = () => {
     client,
     items,
     tax,
+    currency,
     invoiceMeta,
     setFreelancer,
     setClient,
@@ -15,6 +16,7 @@ const InvoiceForm = () => {
     updateItem,
     addItem,
     setTax,
+    setCurrency,
   } = useInvoiceStore()
 
   const subtotal = items.reduce(
@@ -72,7 +74,7 @@ const InvoiceForm = () => {
           />
           <input
             className="input mb-2"
-            placeholder="Phone Number"
+            placeholder="Client Phone Number"
             value={client.phone || ""}
             onChange={(e) => setClient({ phone: e.target.value })}
           />
@@ -96,25 +98,42 @@ const InvoiceForm = () => {
             value={invoiceMeta.number || ""}
             onChange={(e) => setInvoiceMeta({ number: e.target.value })}
           />
-          <input
-            type="date"
-            className="input mb-2"
-            placeholder="Invoice Date"
-            value={invoiceMeta.date || ""}
-            onChange={(e) => setInvoiceMeta({ date: e.target.value })}
-          />
-          <input
-            type="date"
-            className="input"
-            placeholder="Due Date"
-            value={invoiceMeta.dueDate || ""}
-            onChange={(e) => setInvoiceMeta({ dueDate: e.target.value })}
-          />
+          <div className="mb-4">
+            <label
+              htmlFor="invoice-date"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Invoice Date
+            </label>
+            <input
+              id="invoice-date"
+              type="date"
+              className="input"
+              value={invoiceMeta.date || ""}
+              onChange={(e) => setInvoiceMeta({ date: e.target.value })}
+            />
+          </div>
+
+          <div className="mb-4">
+            <label
+              htmlFor="due-date"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Due Date
+            </label>
+            <input
+              id="due-date"
+              type="date"
+              className="input"
+              value={invoiceMeta.dueDate || ""}
+              onChange={(e) => setInvoiceMeta({ dueDate: e.target.value })}
+            />
+          </div>
         </div>
         <div>
           <h2 className="text-xl font-semibold mb-2">Payment Details</h2>
           <textarea
-            className="input resize-none min-h-[142px]"
+            className="input resize-none min-h-[198px]"
             placeholder="Bank account, PayPal, Wise, etc."
             rows={4}
             value={invoiceMeta.paymentDetails || ""}
@@ -177,10 +196,36 @@ const InvoiceForm = () => {
             onChange={(e) => setTax(parseFloat(e.target.value) || 0)}
           />
         </div>
+        <div className="flex gap-2 items-center">
+          <label htmlFor="currency" className="font-medium">
+            Currency:
+          </label>
+          <select
+            id="currency"
+            className="input w-24"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+          >
+            <option value="€">€</option>
+            <option value="$">$</option>
+            <option value="£">£</option>
+            <option value="₹">₹</option>
+            <option value="¥">¥</option>
+          </select>
+        </div>
         <div className="text-right space-y-1">
-          <p className="text-sm">Subtotal: €{subtotal.toFixed(2)}</p>
-          <p className="text-sm">Tax: €{taxAmount.toFixed(2)}</p>
-          <p className="text-xl font-bold">Total: €{total.toFixed(2)}</p>
+          <p className="text-sm">
+            Subtotal: {currency}
+            {subtotal.toFixed(2)}
+          </p>
+          <p className="text-sm">
+            Tax: {currency}
+            {taxAmount.toFixed(2)}
+          </p>
+          <p className="text-xl font-bold">
+            Total: {currency}
+            {total.toFixed(2)}
+          </p>
         </div>
       </div>
     </div>
