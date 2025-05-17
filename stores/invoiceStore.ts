@@ -19,6 +19,8 @@ type InvoiceMeta = {
   date?: string
   dueDate?: string
   paymentDetails?: string
+  status?: "draft" | "sent" | "paid"
+  note?: string
 }
 
 type InvoiceState = {
@@ -28,6 +30,7 @@ type InvoiceState = {
   tax: number
   currency: string
   invoiceMeta: InvoiceMeta
+  credit: number
   setFreelancer: (info: Partial<ContactInfo>) => void
   setClient: (info: Partial<ContactInfo>) => void
   setItems: (items: InvoiceItem[]) => void
@@ -36,6 +39,7 @@ type InvoiceState = {
   setTax: (tax: number) => void
   setCurrency: (currency: string) => void
   setInvoiceMeta: (meta: Partial<InvoiceMeta>) => void
+  setCredit: (value: number) => void
 }
 
 export const useInvoiceStore = create<InvoiceState>()(
@@ -51,7 +55,10 @@ export const useInvoiceStore = create<InvoiceState>()(
         date: "",
         dueDate: "",
         paymentDetails: "",
+        status: "draft",
+        note: "Thank you for your business! If you have any questions, feel free to contact me.",
       },
+      credit: 0,
       setFreelancer: (info) =>
         set((state) => ({
           freelancer: { ...state.freelancer, ...info },
@@ -77,6 +84,7 @@ export const useInvoiceStore = create<InvoiceState>()(
         })),
       setTax: (tax) => set(() => ({ tax })),
       setCurrency: (currency: string) => set({ currency }),
+      setCredit: (value) => set(() => ({ credit: value })),
       setInvoiceMeta: (meta) =>
         set((state) => ({
           invoiceMeta: { ...state.invoiceMeta, ...meta },

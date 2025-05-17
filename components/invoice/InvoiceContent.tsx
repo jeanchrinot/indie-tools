@@ -4,7 +4,7 @@
 import { useInvoiceStore } from "@/stores/invoiceStore"
 
 export default function InvoiceContent() {
-  const { freelancer, client, items, tax, currency, invoiceMeta } =
+  const { freelancer, client, items, tax, currency, invoiceMeta, credit } =
     useInvoiceStore()
 
   const subtotal = items.reduce(
@@ -17,6 +17,14 @@ export default function InvoiceContent() {
   return (
     <div className="p-8 bg-white text-gray-800 rounded-md shadow text-sm leading-snug">
       {/* Header */}
+      {invoiceMeta.status === "paid" && (
+        <div className="text-right mb-4">
+          <span className="font-medium uppercase text-sm text-green-600 border border-b border-green-600 px-4 py-1">
+            {invoiceMeta.status || "Draft"}
+          </span>
+        </div>
+      )}
+
       <div className="flex justify-between mb-8">
         <div>
           <p className="text-lg font-semibold mb-2">{freelancer.name}</p>
@@ -101,18 +109,21 @@ export default function InvoiceContent() {
             {taxAmount.toFixed(2)}
           </p>
         )}
-        <p className="text-lg font-semibold text-gray-900">
+        {credit > 0 && (
+          <p className="text-sm font-bold text-green-700">
+            Credit: -{currency}
+            {credit.toFixed(2)}
+          </p>
+        )}
+        <p className="text-xl font-bold">
           Total: {currency}
-          {total.toFixed(2)}
+          {(total - credit).toFixed(2)}
         </p>
       </div>
 
       {/* Footer */}
       <div className="mt-8 text-gray-600">
-        <p className="mb-4">
-          Thank you for your business! If you have any questions, feel free to
-          contact me at {freelancer.email}.
-        </p>
+        <p className="mb-4 whitespace-pre-line">{invoiceMeta.note}</p>
         <p className="text-xs text-gray-400 italic text-center">
           Created with{" "}
           <a

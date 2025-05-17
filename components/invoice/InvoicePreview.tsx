@@ -43,7 +43,10 @@ export default function InvoicePreview() {
   return (
     <div>
       {/* Visible Invoice */}
-      <div ref={invoiceRef} className="max-w-3xl mx-auto bg-white">
+      <div
+        ref={invoiceRef}
+        className="max-w-3xl mx-auto bg-white md:min-w-[794px]"
+      >
         <InvoiceContent />
       </div>
 
