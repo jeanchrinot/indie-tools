@@ -1,25 +1,40 @@
 "use client"
 
+import { useParams } from "next/navigation"
+import { useEffect } from "react"
 import { useInvoiceStore } from "@/stores/invoiceStore"
 
 const InvoiceForm = () => {
   const {
-    freelancer,
-    client,
-    items,
-    tax,
-    currency,
-    invoiceMeta,
-    credit,
-    setCredit,
-    setFreelancer,
-    setClient,
-    setInvoiceMeta,
+    setCurrentInvoice,
+    getInvoice,
+    updateCurrentInvoiceField,
+    updateCurrentInvoiceNestedField,
     updateItem,
     addItem,
-    setTax,
-    setCurrency,
   } = useInvoiceStore()
+
+  const params = useParams()
+  const invoiceId = params.invoiceId
+
+  useEffect(() => {
+    if (typeof invoiceId == "string") {
+      setCurrentInvoice(invoiceId)
+    }
+  }, [invoiceId, setCurrentInvoice])
+
+  if (typeof invoiceId !== "string") {
+    return <p>Invalid invoice ID</p>
+  }
+
+  const invoice = getInvoice(invoiceId)
+
+  if (!invoice) {
+    return <p>No invoice selected</p>
+  }
+
+  const { freelancer, client, items, tax, credit, currency, invoiceMeta } =
+    invoice
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.quantity * item.price,
@@ -27,6 +42,9 @@ const InvoiceForm = () => {
   )
   const taxAmount = (subtotal * tax) / 100
   const total = subtotal + taxAmount
+
+  console.log("currentInvoiceId", invoiceId)
+  console.log("invoice", invoice)
 
   return (
     <div className="space-y-8">
@@ -38,26 +56,50 @@ const InvoiceForm = () => {
             className="input mb-2"
             placeholder="Name"
             value={freelancer.name}
-            onChange={(e) => setFreelancer({ name: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField(
+                "freelancer",
+                "name",
+                e.target.value
+              )
+            }
           />
           <input
             className="input mb-2"
             placeholder="Email"
             value={freelancer.email}
-            onChange={(e) => setFreelancer({ email: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField(
+                "freelancer",
+                "email",
+                e.target.value
+              )
+            }
           />
           <input
             className="input mb-2"
             placeholder="Phone Number"
             value={freelancer.phone || ""}
-            onChange={(e) => setFreelancer({ phone: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField(
+                "freelancer",
+                "phone",
+                e.target.value
+              )
+            }
           />
           <textarea
             className="input resize-none"
             placeholder="Address"
             rows={2}
             value={freelancer.address}
-            onChange={(e) => setFreelancer({ address: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField(
+                "freelancer",
+                "address",
+                e.target.value
+              )
+            }
           />
         </div>
         <div>
@@ -66,103 +108,115 @@ const InvoiceForm = () => {
             className="input mb-2"
             placeholder="Client Name"
             value={client.name}
-            onChange={(e) => setClient({ name: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField("client", "name", e.target.value)
+            }
           />
           <input
             className="input mb-2"
             placeholder="Client Email"
             value={client.email}
-            onChange={(e) => setClient({ email: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField("client", "email", e.target.value)
+            }
           />
           <input
             className="input mb-2"
             placeholder="Client Phone Number"
             value={client.phone || ""}
-            onChange={(e) => setClient({ phone: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField("client", "phone", e.target.value)
+            }
           />
           <textarea
             className="input resize-none"
             placeholder="Client Address"
             rows={2}
             value={client.address}
-            onChange={(e) => setClient({ address: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField(
+                "client",
+                "address",
+                e.target.value
+              )
+            }
           />
         </div>
       </div>
 
       {/* Invoice Metadata */}
-      <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Invoice Info</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="mb-4">
-              <label
-                htmlFor="invoice-number"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Invoice Number
-              </label>
-              <input
-                className="input"
-                id="invoice-number"
-                placeholder="Invoice Number"
-                value={invoiceMeta.number || ""}
-                onChange={(e) => setInvoiceMeta({ number: e.target.value })}
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="invoice-status"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Status
-              </label>
-              <select
-                id="invoice-status"
-                className="input h-[42px]"
-                value={invoiceMeta.status || "draft"}
-                onChange={(e) =>
-                  setInvoiceMeta({
-                    status: e.target.value as "draft" | "sent" | "paid",
-                  })
-                }
-              >
-                <option value="draft">Draft</option>
-                <option value="sent">Sent</option>
-                <option value="paid">Paid</option>
-              </select>
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="invoice-date"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Invoice Date
-              </label>
-              <input
-                id="invoice-date"
-                type="date"
-                className="input"
-                value={invoiceMeta.date || ""}
-                onChange={(e) => setInvoiceMeta({ date: e.target.value })}
-              />
-            </div>
-
-            <div className="mb-4">
-              <label
-                htmlFor="due-date"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Due Date
-              </label>
-              <input
-                id="due-date"
-                type="date"
-                className="input"
-                value={invoiceMeta.dueDate || ""}
-                onChange={(e) => setInvoiceMeta({ dueDate: e.target.value })}
-              />
-            </div>
+      <div>
+        <h2 className="text-xl font-semibold mb-2">Invoice Info</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Invoice Number
+            </label>
+            <input
+              className="input"
+              value={invoiceMeta.number || ""}
+              onChange={(e) =>
+                updateCurrentInvoiceNestedField(
+                  "invoiceMeta",
+                  "number",
+                  e.target.value
+                )
+              }
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              className="input h-[42px]"
+              value={invoiceMeta.status || "draft"}
+              onChange={(e) =>
+                updateCurrentInvoiceNestedField(
+                  "invoiceMeta",
+                  "status",
+                  e.target.value as any
+                )
+              }
+            >
+              <option value="draft">Draft</option>
+              <option value="sent">Sent</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Invoice Date
+            </label>
+            <input
+              type="date"
+              className="input"
+              value={invoiceMeta.date || ""}
+              onChange={(e) =>
+                updateCurrentInvoiceNestedField(
+                  "invoiceMeta",
+                  "date",
+                  e.target.value
+                )
+              }
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Due Date
+            </label>
+            <input
+              type="date"
+              className="input"
+              value={invoiceMeta.dueDate || ""}
+              onChange={(e) =>
+                updateCurrentInvoiceNestedField(
+                  "invoiceMeta",
+                  "dueDate",
+                  e.target.value
+                )
+              }
+            />
           </div>
         </div>
       </div>
@@ -173,19 +227,29 @@ const InvoiceForm = () => {
           <textarea
             className="input resize-none min-h-[100px]"
             placeholder="Bank account, PayPal, Wise, etc."
-            rows={4}
             value={invoiceMeta.paymentDetails || ""}
-            onChange={(e) => setInvoiceMeta({ paymentDetails: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField(
+                "invoiceMeta",
+                "paymentDetails",
+                e.target.value
+              )
+            }
           />
         </div>
         <div>
           <h2 className="text-xl font-semibold mb-2">Note to Client</h2>
           <textarea
             className="input resize-none min-h-[100px]"
-            placeholder="Thank you for your business! If you have any questions, feel free to contact me."
-            rows={4}
+            placeholder="Thank you for your business!"
             value={invoiceMeta.note || ""}
-            onChange={(e) => setInvoiceMeta({ note: e.target.value })}
+            onChange={(e) =>
+              updateCurrentInvoiceNestedField(
+                "invoiceMeta",
+                "note",
+                e.target.value
+              )
+            }
           />
         </div>
       </div>
@@ -221,19 +285,15 @@ const InvoiceForm = () => {
             </div>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={addItem}
-          className="button mt-3 px-4 py-2 text-sm"
-        >
+        <button onClick={addItem} className="button mt-3 px-4 py-2 text-sm">
           + Add Line Item
         </button>
       </div>
 
-      {/* Totals */}
+      {/* Totals & Settings */}
       <div className="border-t pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 justify-between items-center ">
-          <div className="flex gap-2 items-center mb-2 mr-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="flex gap-2 items-center">
             <label htmlFor="tax" className="font-medium flex-1">
               Tax (%):
             </label>
@@ -242,10 +302,15 @@ const InvoiceForm = () => {
               type="number"
               className="input flex-2"
               value={tax}
-              onChange={(e) => setTax(parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                updateCurrentInvoiceField(
+                  "tax",
+                  parseFloat(e.target.value) || 0
+                )
+              }
             />
           </div>
-          <div className="flex gap-2 items-center mb-2 mr-3">
+          <div className="flex gap-2 items-center">
             <label htmlFor="credit" className="font-medium flex-1">
               Credit:
             </label>
@@ -254,10 +319,15 @@ const InvoiceForm = () => {
               type="number"
               className="input flex-2"
               value={credit}
-              onChange={(e) => setCredit(parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                updateCurrentInvoiceField(
+                  "credit",
+                  parseFloat(e.target.value) || 0
+                )
+              }
             />
           </div>
-          <div className="flex gap-2 items-center mb-2 mr-3">
+          <div className="flex gap-2 items-center">
             <label htmlFor="currency" className="font-medium flex-1">
               Currency:
             </label>
@@ -265,7 +335,9 @@ const InvoiceForm = () => {
               id="currency"
               className="input flex-2"
               value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
+              onChange={(e) =>
+                updateCurrentInvoiceField("currency", e.target.value)
+              }
             >
               <option value="€">€</option>
               <option value="$">$</option>

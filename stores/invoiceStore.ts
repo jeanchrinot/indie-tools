@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { nanoid } from "nanoid" // For unique IDs
 
 type InvoiceItem = {
   description: string
@@ -23,7 +24,8 @@ type InvoiceMeta = {
   note?: string
 }
 
-type InvoiceState = {
+type Invoice = {
+  id: string
   freelancer: ContactInfo
   client: ContactInfo
   items: InvoiceItem[]
@@ -31,67 +33,165 @@ type InvoiceState = {
   currency: string
   invoiceMeta: InvoiceMeta
   credit: number
-  setFreelancer: (info: Partial<ContactInfo>) => void
-  setClient: (info: Partial<ContactInfo>) => void
-  setItems: (items: InvoiceItem[]) => void
+}
+
+type InvoiceState = {
+  invoices: Invoice[]
+  currentInvoiceId: string | null
+  createInvoice: () => string
+  updateInvoice: (id: string, data: Partial<Invoice>) => void
+  deleteInvoice: (id: string) => void
+  setCurrentInvoice: (id: string) => void
+  getCurrentInvoice: () => Invoice | undefined
+  getInvoice: (id: string) => Invoice | undefined
+  updateCurrentInvoiceField: <K extends keyof Invoice>(
+    field: K,
+    value: Invoice[K]
+  ) => void
+  updateCurrentInvoiceNestedField: <
+    T extends keyof Pick<Invoice, "freelancer" | "client" | "invoiceMeta">,
+    K extends keyof Invoice[T]
+  >(
+    section: T,
+    field: K,
+    value: Invoice[T][K]
+  ) => void
+
   updateItem: (index: number, field: keyof InvoiceItem, value: string) => void
   addItem: () => void
-  setTax: (tax: number) => void
-  setCurrency: (currency: string) => void
-  setInvoiceMeta: (meta: Partial<InvoiceMeta>) => void
-  setCredit: (value: number) => void
 }
 
 export const useInvoiceStore = create<InvoiceState>()(
   persist(
-    (set) => ({
-      freelancer: { name: "", email: "", address: "", phone: "" },
-      client: { name: "", email: "", address: "", phone: "" },
-      items: [{ description: "", quantity: 1, price: 0 }],
-      tax: 0,
-      currency: "€", // default
-      invoiceMeta: {
-        number: "INV-001",
-        date: "",
-        dueDate: "",
-        paymentDetails: "",
-        status: "draft",
-        note: "Thank you for your business! If you have any questions, feel free to contact me.",
+    (set, get) => ({
+      invoices: [],
+      currentInvoiceId: null,
+
+      createInvoice: () => {
+        const id = nanoid()
+        const newInvoice: Invoice = {
+          id,
+          freelancer: { name: "", email: "", address: "", phone: "" },
+          client: { name: "", email: "", address: "", phone: "" },
+          items: [{ description: "", quantity: 1, price: 0 }],
+          tax: 0,
+          currency: "€",
+          credit: 0,
+          invoiceMeta: {
+            number: `INV-${id.slice(0, 6).toUpperCase()}`,
+            date: "",
+            dueDate: "",
+            paymentDetails: "",
+            status: "draft",
+            note: "Thank you for your business! If you have any questions, feel free to contact me.",
+          },
+        }
+
+        set((state) => ({
+          invoices: [...state.invoices, newInvoice],
+          currentInvoiceId: id,
+        }))
+        return id
       },
-      credit: 0,
-      setFreelancer: (info) =>
+
+      updateInvoice: (id, data) =>
         set((state) => ({
-          freelancer: { ...state.freelancer, ...info },
+          invoices: state.invoices.map((inv) =>
+            inv.id === id ? { ...inv, ...data } : inv
+          ),
         })),
-      setClient: (info) =>
+
+      deleteInvoice: (id) =>
         set((state) => ({
-          client: { ...state.client, ...info },
+          invoices: state.invoices.filter((inv) => inv.id !== id),
+          currentInvoiceId:
+            state.currentInvoiceId === id ? null : state.currentInvoiceId,
         })),
-      setItems: (items) => set(() => ({ items })),
-      updateItem: (index, field, value) =>
-        set((state) => {
-          const items = [...state.items]
-          if (field === "description") {
-            items[index][field] = value
-          } else {
-            items[index][field] = parseFloat(value) as never
-          }
-          return { items }
-        }),
-      addItem: () =>
+
+      setCurrentInvoice: (id) => set({ currentInvoiceId: id }),
+
+      getCurrentInvoice: () => {
+        const state = get()
+        return state.invoices.find((inv) => inv.id === state.currentInvoiceId)
+      },
+      getInvoice: (id) => {
+        const state = get()
+        return state.invoices.find((inv) => inv.id === id)
+      },
+      updateCurrentInvoiceField: (field, value) => {
+        const id = get().currentInvoiceId
+        if (!id) return
         set((state) => ({
-          items: [...state.items, { description: "", quantity: 1, price: 0 }],
-        })),
-      setTax: (tax) => set(() => ({ tax })),
-      setCurrency: (currency: string) => set({ currency }),
-      setCredit: (value) => set(() => ({ credit: value })),
-      setInvoiceMeta: (meta) =>
+          invoices: state.invoices.map((inv) =>
+            inv.id === id ? { ...inv, [field]: value } : inv
+          ),
+        }))
+      },
+
+      updateCurrentInvoiceNestedField: <
+        Section extends keyof Pick<
+          Invoice,
+          "freelancer" | "client" | "invoiceMeta"
+        >,
+        Field extends keyof Invoice[Section]
+      >(
+        section: Section,
+        field: Field,
+        value: Invoice[Section][Field]
+      ) => {
+        const id = get().currentInvoiceId
+        if (!id) return
         set((state) => ({
-          invoiceMeta: { ...state.invoiceMeta, ...meta },
-        })),
+          invoices: state.invoices.map((inv) => {
+            if (inv.id !== id) return inv
+            return {
+              ...inv,
+              [section]: {
+                ...inv[section],
+                [field]: value,
+              },
+            }
+          }),
+        }))
+      },
+
+      updateItem: (index, field, value) => {
+        const id = get().currentInvoiceId
+        if (!id) return
+        set((state) => ({
+          invoices: state.invoices.map((inv) => {
+            if (inv.id !== id) return inv
+            const newItems = [...inv.items]
+            if (field === "description") {
+              newItems[index][field] = value
+            } else {
+              newItems[index][field] = parseFloat(value) as never
+            }
+            return { ...inv, items: newItems }
+          }),
+        }))
+      },
+
+      addItem: () => {
+        const id = get().currentInvoiceId
+        if (!id) return
+        set((state) => ({
+          invoices: state.invoices.map((inv) =>
+            inv.id === id
+              ? {
+                  ...inv,
+                  items: [
+                    ...inv.items,
+                    { description: "", quantity: 1, price: 0 },
+                  ],
+                }
+              : inv
+          ),
+        }))
+      },
     }),
     {
-      name: "indie-tools-invoice-storage",
+      name: "indie-tools-invoice-storage-v2",
     }
   )
 )

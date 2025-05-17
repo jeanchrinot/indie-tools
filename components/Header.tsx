@@ -9,14 +9,8 @@ const Header = () => {
         </Link>
 
         <nav className="space-x-4 text-sm">
-          <Link href="/terms" className="hover:underline">
-            Terms
-          </Link>
-          <Link href="/privacy" className="hover:underline">
-            Privacy
-          </Link>
-          <Link href="/contact" className="hover:underline">
-            Contact
+          <Link href="/invoice" className="hover:underline">
+            My Invoices
           </Link>
         </nav>
       </div>

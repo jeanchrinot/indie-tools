@@ -4,8 +4,16 @@
 import { useInvoiceStore } from "@/stores/invoiceStore"
 
 export default function InvoiceContent() {
+  const { getCurrentInvoice } = useInvoiceStore()
+
+  const invoice = getCurrentInvoice()
+
+  if (!invoice) {
+    return <p>No invoice selected</p>
+  }
+
   const { freelancer, client, items, tax, currency, invoiceMeta, credit } =
-    useInvoiceStore()
+    invoice
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.quantity * item.price,

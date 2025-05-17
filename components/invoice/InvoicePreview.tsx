@@ -8,7 +8,15 @@ import { useInvoiceStore } from "@/stores/invoiceStore"
 
 export default function InvoicePreview() {
   const invoiceRef = useRef<HTMLDivElement>(null)
-  const { invoiceMeta } = useInvoiceStore()
+  const { getCurrentInvoice } = useInvoiceStore()
+
+  const invoice = getCurrentInvoice()
+
+  if (!invoice) {
+    return <p>No invoice selected</p>
+  }
+
+  const { invoiceMeta } = invoice
 
   const downloadPDF = async () => {
     const element = document.getElementById("invoice-export")
